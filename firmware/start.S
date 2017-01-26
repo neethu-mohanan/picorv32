@@ -10,6 +10,7 @@
 #define ENABLE_SIEVE
 #define ENABLE_MULTST
 #define ENABLE_STATS
+#define ENABLE_HELLO
 
 #ifndef ENABLE_QREGS
 #  undef ENABLE_RVTST
@@ -25,6 +26,7 @@
 	.section .text
 	.global irq
 	.global sieve
+	.global hello
 	.global multest
 	.global hard_mul
 	.global hard_mulh
@@ -374,6 +376,11 @@ start:
 
 	/* running tests from riscv-tests */
 
+#ifdef ENABLE_HELLO
+	/* call hello C code */
+	jal ra,hello_world
+#endif
+
 #ifdef ENABLE_RVTST
 #  define TEST(n) \
 	.global n; \
@@ -463,6 +470,11 @@ start:
 #ifdef ENABLE_STATS
 	/* call stats C code */
 	jal ra,stats
+#endif
+
+#ifdef ENABLE_HELLO
+	/* call hello C code */
+	jal ra,bye_world
 #endif
 
 	/* print "DONE\n" */
