@@ -315,21 +315,22 @@ module picorv32 #(
 	reg mem_do_rinst;
 	reg mem_do_rdata;
 	reg mem_do_wdata;
-
+  
+  reg prefetched_high_word;
+	reg clear_prefetched_high_word;
+	
 	reg mem_la_secondword, mem_la_firstword_reg, last_mem_valid;
 	wire mem_la_firstword = COMPRESSED_ISA && (mem_do_prefetch || mem_do_rinst) && next_pc[1] && !mem_la_secondword;
-	wire mem_la_firstword_xfer = COMPRESSED_ISA && mem_xfer && (!last_mem_valid ? mem_la_firstword : mem_la_firstword_reg);
+	wire mem_la_use_prefetched_high_word = COMPRESSED_ISA && mem_la_firstword && prefetched_high_word && !clear_prefetched_high_word;
+	wire mem_xfer = (mem_valid && mem_ready) || (mem_la_use_prefetched_high_word && mem_do_rinst);
+  wire mem_la_firstword_xfer = COMPRESSED_ISA && mem_xfer && (!last_mem_valid ? mem_la_firstword : mem_la_firstword_reg);
 
-	reg prefetched_high_word;
-	reg clear_prefetched_high_word;
 	reg [15:0] mem_16bit_buffer;
 
 	wire [31:0] mem_rdata_latched_noshuffle;
 	wire [31:0] mem_rdata_latched;
 
-	wire mem_la_use_prefetched_high_word = COMPRESSED_ISA && mem_la_firstword && prefetched_high_word && !clear_prefetched_high_word;
-	wire mem_xfer = (mem_valid && mem_ready) || (mem_la_use_prefetched_high_word && mem_do_rinst);
-
+	
 	wire mem_busy = |{mem_do_prefetch, mem_do_rinst, mem_do_rdata, mem_do_wdata};
 	wire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) || (&mem_state && mem_do_rinst)) &&
 			(!mem_la_firstword || (~&mem_rdata_latched[1:0] && mem_xfer));
@@ -551,10 +552,10 @@ module picorv32 #(
 					end
 				end
 				1: begin
-					`assert(mem_wstrb == 0);
-					`assert(mem_do_prefetch || mem_do_rinst || mem_do_rdata);
-					`assert(mem_valid == !mem_la_use_prefetched_high_word);
-					`assert(mem_instr == (mem_do_prefetch || mem_do_rinst));
+					`assert(mem_wstrb == 0)
+					`assert(mem_do_prefetch || mem_do_rinst || mem_do_rdata)
+					`assert(mem_valid == !mem_la_use_prefetched_high_word)
+					`assert(mem_instr == (mem_do_prefetch || mem_do_rinst))
 					if (mem_xfer) begin
 						if (COMPRESSED_ISA && mem_la_read) begin
 							mem_valid <= 1;
@@ -577,16 +578,16 @@ module picorv32 #(
 					end
 				end
 				2: begin
-					`assert(mem_wstrb != 0);
-					`assert(mem_do_wdata);
+					`assert(mem_wstrb != 0)
+					`assert(mem_do_wdata)
 					if (mem_xfer) begin
 						mem_valid <= 0;
 						mem_state <= 0;
 					end
 				end
 				3: begin
-					`assert(mem_wstrb == 0);
-					`assert(mem_do_prefetch);
+					`assert(mem_wstrb == 0)
+					`assert(mem_do_prefetch)
 					if (mem_do_rinst) begin
 						mem_state <= 0;
 					end
