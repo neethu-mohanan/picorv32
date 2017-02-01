@@ -11,6 +11,7 @@
 #define ENABLE_MULTST
 #define ENABLE_STATS
 #define ENABLE_HELLO
+#define ENABLE_ADDTST
 
 #ifndef ENABLE_QREGS
 #  undef ENABLE_RVTST
@@ -33,6 +34,8 @@
 	.global hard_mulhsu
 	.global hard_mulhu
 	.global stats
+	.global addtest
+	.global hard_add
 
 reset_vec:
 	// no more than 16 bytes here !
@@ -463,6 +466,11 @@ start:
 #endif
 
 #ifdef ENABLE_MULTST
+	/* call addtest C code */
+	jal ra,addtest
+#endif
+
+#ifdef ENABLE_MULTST
 	/* call multest C code */
 	jal ra,multest
 #endif
@@ -517,3 +525,9 @@ hard_mulhu:
 	mulhu a0, a0, a1
 	ret
 
+/* Hard add functions for math.c
+ **********************************/
+
+hard_add:
+	add a0, a0, a1
+	ret

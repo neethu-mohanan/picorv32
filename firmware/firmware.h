@@ -37,4 +37,8 @@ void stats(void);
 void hello_world(void);
 void bye_world(void);
 
+// addtest.c
+uint32_t hard_add(uint32_t a, uint32_t b);
+void addtest(void);
+
 #endif
