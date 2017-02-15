@@ -465,9 +465,14 @@ start:
 	jal ra,sieve
 #endif
 
-#ifdef ENABLE_MULTST
+#ifdef ENABLE_ADDTST
 	/* call addtest C code */
 	jal ra,addtest
+#endif
+
+#ifdef ENABLE_ADDTST
+	/* call vector_add C code */
+	jal ra,vector_add
 #endif
 
 #ifdef ENABLE_MULTST
